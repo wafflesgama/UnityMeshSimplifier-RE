@@ -159,6 +159,12 @@ namespace UnityMeshSimplifier
             for (int levelIndex = 0; levelIndex < levels.Length; levelIndex++)
             {
                 var level = levels[levelIndex];
+
+                // Cache generated meshes for this LOD level.
+                // Key: original source mesh
+                // Value: simplified mesh generated from that source mesh.
+                var simplifiedMeshCache = new Dictionary<Mesh, Mesh>();
+
                 var levelGameObject = new GameObject(string.Format("Level{0:00}", levelIndex));
                 var levelTransform = levelGameObject.transform;
                 ParentAndResetTransform(levelTransform, lodParent);
@@ -197,7 +203,7 @@ namespace UnityMeshSimplifier
                         for (int rendererIndex = 0; rendererIndex < staticRenderers.Length; rendererIndex++)
                         {
                             var renderer = staticRenderers[rendererIndex];
-                            var levelRenderer = CreateLevelRenderer(gameObject, levelIndex, level, levelTransform, rendererIndex, renderer, simplificationOptions, saveAssetsPath);
+                            var levelRenderer = CreateLevelRenderer(gameObject, levelIndex, level, levelTransform, rendererIndex, renderer, simplificationOptions, saveAssetsPath, simplifiedMeshCache);
                             levelRenderers.Add(levelRenderer);
                         }
                     }
@@ -207,7 +213,7 @@ namespace UnityMeshSimplifier
                         for (int rendererIndex = 0; rendererIndex < skinnedRenderers.Length; rendererIndex++)
                         {
                             var renderer = skinnedRenderers[rendererIndex];
-                            var levelRenderer = CreateLevelRenderer(gameObject, levelIndex, level, levelTransform, rendererIndex, renderer, simplificationOptions, saveAssetsPath);
+                            var levelRenderer = CreateLevelRenderer(gameObject, levelIndex, level, levelTransform, rendererIndex, renderer, simplificationOptions, saveAssetsPath, simplifiedMeshCache);
                             levelRenderers.Add(levelRenderer);
                         }
                     }
@@ -456,17 +462,45 @@ namespace UnityMeshSimplifier
             transform.SetParent(parentTransform, true);
         }
 
-        private static Renderer CreateLevelRenderer(GameObject gameObject, int levelIndex, in LODLevel level, Transform levelTransform, int rendererIndex, in RendererInfo renderer, in SimplificationOptions simplificationOptions, string saveAssetsPath)
+        private static Renderer CreateLevelRenderer(GameObject gameObject, int levelIndex, in LODLevel level, Transform levelTransform, int rendererIndex, in RendererInfo renderer, in SimplificationOptions simplificationOptions, string saveAssetsPath, Dictionary<Mesh, Mesh> simplifiedMeshCache)
         {
             var mesh = renderer.mesh;
 
             // Simplify the mesh if necessary
             if (level.Quality < 1f)
             {
-                mesh = SimplifyMesh(mesh, level.Quality, simplificationOptions);
+                bool generatedNewMesh = false;
+
+                if (!renderer.isNewMesh && simplifiedMeshCache.TryGetValue(mesh, out var cachedMesh))
+                {
+                    // Another renderer uses the exact same source mesh.
+                    // Reuse the already generated simplified mesh.
+                    mesh = cachedMesh;
+                }
+                else
+                {
+                    // This is the first renderer using this source mesh.
+                    mesh = SimplifyMesh(mesh, level.Quality, simplificationOptions);
+
+                    if (!renderer.isNewMesh)
+                    {
+                        simplifiedMeshCache.Add(renderer.mesh, mesh);
+                    }
+
+                    generatedNewMesh = true;
+                }
 
 #if UNITY_EDITOR
-                SaveLODMeshAsset(mesh, gameObject.name, renderer.name, levelIndex, mesh.name, saveAssetsPath);
+    if (generatedNewMesh)
+    {
+        SaveLODMeshAsset(
+            mesh,
+            gameObject.name,
+            renderer.name,
+            levelIndex,
+            mesh.name,
+            saveAssetsPath);
+    }
 #endif
 
                 if (renderer.isNewMesh)
