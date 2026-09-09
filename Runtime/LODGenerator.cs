@@ -39,12 +39,12 @@ namespace UnityMeshSimplifier
         /// <summary>
         /// The name of the game object where generated LODs are parented under.
         /// </summary>
-        public static readonly string LODParentGameObjectName = "_UMS_LODs_";
+        public static readonly string LODParentGameObjectName = "_LODs";
 
         /// <summary>
         /// The default parent path for generated LOD assets.
         /// </summary>
-        public static readonly string LODAssetDefaultParentPath = "Assets/UMS_LODs/";
+        public static readonly string LODAssetDefaultParentPath = "Assets/3D/_LODs/";
 
         /// <summary>
         /// The root assets path.
