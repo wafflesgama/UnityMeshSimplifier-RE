@@ -643,6 +643,14 @@ namespace UnityMeshSimplifier
 
         private static Mesh SimplifyMesh(Mesh mesh, float quality, in SimplificationOptions options)
         {
+            Debug.Log(
+        $"LOD SIMPLIFY: {mesh.name} | " +
+        $"Quality: {quality} | " +
+        $"Input vertices: {mesh.vertexCount} | " +
+        $"Input triangles: {mesh.triangles.Length / 3}"
+    );
+
+
             var meshSimplifier = new MeshSimplifier();
             meshSimplifier.SimplificationOptions = options;
             meshSimplifier.Initialize(mesh);
@@ -650,6 +658,13 @@ namespace UnityMeshSimplifier
 
             var simplifiedMesh = meshSimplifier.ToMesh();
             simplifiedMesh.bindposes = mesh.bindposes;
+
+              Debug.Log(
+        $"LOD RESULT: {simplifiedMesh.name} | " +
+        $"Output vertices: {simplifiedMesh.vertexCount} | " +
+        $"Output triangles: {simplifiedMesh.triangles.Length / 3}"
+    );
+    
             return simplifiedMesh;
         }
 
