@@ -524,6 +524,7 @@ namespace UnityMeshSimplifier
         private static MeshRenderer CreateStaticLevelRenderer(string name, Transform parentTransform, Transform originalTransform, Mesh mesh, Material[] materials, in LODLevel level)
         {
             var levelGameObject = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
+            levelGameObject.isStatic= originalTransform.gameObject.isStatic;
             var levelTransform = levelGameObject.transform;
             if (originalTransform != null)
             {
@@ -546,6 +547,7 @@ namespace UnityMeshSimplifier
         private static SkinnedMeshRenderer CreateSkinnedLevelRenderer(string name, Transform parentTransform, Transform originalTransform, Mesh mesh, Material[] materials, Transform rootBone, Transform[] bones, in LODLevel level)
         {
             var levelGameObject = new GameObject(name, typeof(SkinnedMeshRenderer));
+            levelGameObject.isStatic= originalTransform.gameObject.isStatic;
             var levelTransform = levelGameObject.transform;
             if (originalTransform != null)
             {
